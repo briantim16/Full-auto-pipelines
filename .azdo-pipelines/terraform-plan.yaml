@@ -1,0 +1,44 @@
+trigger:
+- none
+
+name: "$(Build.DefinitionName)$(Rev:.r)"
+
+pool:
+  vmImage: "ubuntu-20.04"
+
+jobs:
+- job: terraform
+  timeoutInMinutes: 0
+  steps:
+
+  - task: Bash@3
+    displayName: "terraform validate"
+    inputs:
+      filePath: .azdo-pipelines/scripts/terraform-with-backend.sh
+      workingDirectory: $(WorkingDirectory)
+      arguments: validate
+    env: 
+      ARM_CLIENT_ID: $(tf-client-id)
+      ARM_CLIENT_SECRET: $(tf-client-secret)
+      ARM_TENANT_ID: $(tf-tenant-id)
+      ARM_SUBSCRIPTION_ID: $(tf-subscription-id)
+      BACKEND_RESOURCE_GROUP_NAME: $(tf-resource-group)
+      BACKEND_STORAGE_ACCOUNT_NAME: $(tf-storage-account)
+      BACKEND_STORAGE_CONTAINER_NAME: $(tf-container)
+      TF_BACKEND_KEY: $(ApplicationName)-$(EnvironmentName)
+
+  - task: Bash@3
+    displayName: "terraform plan"
+    inputs:
+      filePath: .azdo-pipelines/scripts/terraform-with-backend.sh
+      workingDirectory: $(WorkingDirectory)
+      arguments: plan -var-file="env-$(EnvironmentName).tfvars"
+    env: 
+      ARM_CLIENT_ID: $(tf-client-id)
+      ARM_CLIENT_SECRET: $(tf-client-secret)
+      ARM_TENANT_ID: $(tf-tenant-id)
+      ARM_SUBSCRIPTION_ID: $(tf-subscription-id)
+      BACKEND_RESOURCE_GROUP_NAME: $(tf-resource-group)
+      BACKEND_STORAGE_ACCOUNT_NAME: $(tf-storage-account)
+      BACKEND_STORAGE_CONTAINER_NAME: $(tf-container)
+      TF_BACKEND_KEY: $(ApplicationName)-$(EnvironmentName)
